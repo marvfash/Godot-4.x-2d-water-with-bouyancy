@@ -2,12 +2,15 @@
 extends Node2D
 
 @export var simulate_water: bool = true 
+
 @export var WATER_COLOR = Color(1.0, 1.0, 1.0, 1.0)
-@export var TOP_WATER_COLOR = Color(1.0, 1.0, 1.0, 1.0)
-@export_range(0, 1) var particles_alpha: float = 0.5
+@export_range(0.0, 1.0, 0.05) var SURFACE_WIDTH: float = 0.2
+@export var SURFACE_COLOR: Color = Color(1.0, 1.0,1.0, 0.75)
+
+@export_range(0, 1, 0.1) var particles_alpha: float = 0.5
 @export var audio_splash: AudioStream = preload("res://addons/polygon2dwater/splash.ogg")
-@export var HEIGHT: float = 0
 @export var WIDTH: float = 0
+@export var HEIGHT: float = 0
 @export var RESOLUTION: float = 15
 @export var TENSION: float = 0.025
 @export var DAMPING: float = 0.001
@@ -21,6 +24,8 @@ var water_particles = preload("res://addons/polygon2dwater/particles.tscn")
 var water_shader = preload("res://addons/polygon2dwater/water.gdshader")
 var droplet_texture = preload("res://addons/polygon2dwater/droplets.png")
 var timer_queuefree_droplets = Timer.new()
+var water_material = ShaderMaterial.new()
+
 
 var refreshing = false
 var initialized = false
@@ -104,13 +109,13 @@ func create_water_block():
 	
 	vecs.insert(0, Vector2(0, -HEIGHT))
 	for i in RESOLUTION:
-		vecs.insert(i+1, Vector2(distance_beetween_vecs * (i + 1),-HEIGHT))
+		vecs.insert(i + 1, Vector2(distance_beetween_vecs * (i + 1),-HEIGHT))
 	
 	vecs.insert(RESOLUTION + 1, Vector2(WIDTH, 0))
 	vecs.insert(RESOLUTION + 2, Vector2(0, 0))
 	
 	water_block.name = "water_base"
-	water_block.polygon = []
+#	water_block.polygon = []
 	water_block.polygon = vecs
 	water_block.color = WATER_COLOR
 	
@@ -118,16 +123,20 @@ func create_water_block():
 	water_collision_polygon_2d.polygon = water_block.polygon
 
 	if simulate_water:
-		var new_material = ShaderMaterial.new()
-		new_material.shader = water_shader
-		new_material.set_shader_parameter("blue_tint", WATER_COLOR)
-		new_material.set_shader_parameter("sprite_scale", Vector2(1,1))
-		new_material.set_shader_parameter("scale_x", water_distortion)
-		new_material.set_shader_parameter("parent_position", position)
-		water_block.material = new_material
+		water_material.shader = water_shader
+		water_material.set_shader_parameter("water_tint", WATER_COLOR)
+		water_material.set_shader_parameter("surface_width", SURFACE_WIDTH)
+		water_material.set_shader_parameter("surface_color", SURFACE_COLOR)
+		water_material.set_shader_parameter("sprite_scale", Vector2(1,1))
+		water_material.set_shader_parameter("scale_x", water_distortion)
+		water_material.set_shader_parameter("parent_position", position)
+		water_material.set_shader_parameter("water_size", Vector2(WIDTH, HEIGHT))
+		water_block.material = water_material
 
 		if water_texture != null:
-			water_block.texture = water_texture
+			water_block.set_texture(water_texture)
+			water_block.set_texture_repeat(CanvasItem.TEXTURE_REPEAT_ENABLED)
+
 
 		water_block.antialiased = true
 		water_area_2d.name = "water_area"
@@ -150,6 +159,15 @@ func create_water_block():
 	
 	water = $"./water_base"
 	_col = $"./water_base/water_area/water_col"
+
+func _set(property, value):
+	##This is used to makes sure the surface foam color moves with the water
+	if simulate_water:
+		if property == "position":
+			water_material.set_shader_parameter("parent_position", value)
+
+func set_position(value):
+	print("Setted")
 
 func body_emerged(body):
 	if (body is RigidBody2D) or (body is CharacterBody2D) or (body is StaticBody2D):
@@ -186,13 +204,14 @@ func body_emerged(body):
 				
 			var droplets = water_particles.instantiate()
 			droplets.name = "particles"
-			droplets.amount = (randomizator.randi() % 30) + 5
-			droplets.lifetime = 3
+			droplets.amount = randomizator.randi_range(2, 5)
+			droplets.lifetime = 30
 			droplets.speed_scale = 3
 			droplets.explosiveness = 1
+			droplets.randomness = 1
 			droplets.one_shot = true
 			droplets.texture = droplet_texture
-			droplets.color = WATER_COLOR
+#			droplets.color = WATER_COLOR
 			droplets.add_to_group("water_droplets")
 			
 			var gradientRamp = Gradient.new()
@@ -201,10 +220,10 @@ func body_emerged(body):
 			corStart.a = particles_alpha
 			corEnd.a = 0
 			
-			gradientRamp.add_point(0, corStart)
-			gradientRamp.add_point(1, corEnd)
-			
-			droplets.color_ramp = gradientRamp
+#			gradientRamp.add_point(0, corStart)
+#			gradientRamp.add_point(1, corEnd)
+#
+#			droplets.color_ramp = gradientRamp
 			droplets.z_index = body.z_index - 1
 			droplets.global_position = Vector2(body.global_position.x, body.global_position.y)
 			droplets.set_as_top_level(true)

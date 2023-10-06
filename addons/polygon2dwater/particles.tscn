@@ -1,28 +1,42 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=6 format=3 uid="uid://dnplnqmfio8fm"]
 
-[ext_resource path="res://addons/polygon2dwater/droplets.png" type="Texture" id=1]
-[ext_resource path="res://addons/polygon2dwater/water_scale_amount.tres" type="Curve" id=2]
+[ext_resource type="Texture2D" uid="uid://cn1lvxvfcbqlc" path="res://addons/polygon2dwater/droplets.png" id="1"]
+[ext_resource type="Curve" uid="uid://c8ierfx4k7tto" path="res://addons/polygon2dwater/water_scale_amount.tres" id="2"]
+
+[sub_resource type="Curve" id="Curve_huhsy"]
+min_value = -10.0
+max_value = 10.0
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="Gradient" id="Gradient_uw220"]
+offsets = PackedFloat32Array(0.002849, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0.627451)
+
+[sub_resource type="Gradient" id="Gradient_apnlf"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0.631373)
 
 [node name="particles" type="CPUParticles2D"]
 emitting = false
-amount = 40
+amount = 10
 lifetime = 3.0
 speed_scale = 3.0
-explosiveness = 1.0
+explosiveness = 0.5
 randomness = 1.0
 lifetime_randomness = 1.0
-local_coords = false
-texture = ExtResource( 1 )
+texture = ExtResource("1")
 emission_shape = 1
-emission_sphere_radius = 1.0
-direction = Vector2( 0, -1 )
-spread = 60.0
-gravity = Vector2( 0, 30 )
-initial_velocity = 120.0
-initial_velocity_random = 1.0
-angular_velocity = 50.0
-damping = 38.89
-damping_random = 1.0
-scale_amount = 0.01
-scale_amount_random = 0.31
-scale_amount_curve = ExtResource( 2 )
+emission_sphere_radius = 20.0
+direction = Vector2(2.08165e-12, -4)
+gravity = Vector2(1, 20)
+angular_velocity_max = 5.0
+linear_accel_max = 5.0
+radial_accel_max = 10.0
+radial_accel_curve = SubResource("Curve_huhsy")
+damping_max = 5.0
+scale_amount_min = 0.2
+scale_amount_max = 1.5
+scale_amount_curve = ExtResource("2")
+color_ramp = SubResource("Gradient_uw220")
+color_initial_ramp = SubResource("Gradient_apnlf")
+hue_variation_max = 1.0

@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://qlalc33v3058"]
+[gd_scene load_steps=9 format=3 uid="uid://qlalc33v3058"]
 
 [ext_resource type="Texture2D" uid="uid://bcbihiyuhwgi7" path="res://assets/blank.png" id="1"]
 [ext_resource type="PackedScene" uid="uid://dwe38eg6kur1h" path="res://boat.tscn" id="2"]
@@ -50,80 +50,6 @@ func _on_water_body_entered(body):
 	pass # Replace with function body.
 "
 
-[sub_resource type="VisualShaderNodeDotProduct" id="VisualShaderNodeDotProduct_bdfsn"]
-
-[sub_resource type="VisualShaderNodeVec2Parameter" id="VisualShaderNodeVec2Parameter_qiqmf"]
-parameter_name = "coord"
-default_value = Vector2(12.99, 78.233)
-
-[sub_resource type="VisualShaderNodeFloatConstant" id="VisualShaderNodeFloatConstant_t0mgc"]
-constant = 43758.5
-
-[sub_resource type="VisualShaderNodeVec2Constant" id="VisualShaderNodeVec2Constant_5o033"]
-constant = Vector2(12.99, 78.233)
-
-[sub_resource type="VisualShaderNodeFloatOp" id="VisualShaderNodeFloatOp_oncj3"]
-operator = 2
-
-[sub_resource type="VisualShaderNodeDerivativeFunc" id="VisualShaderNodeDerivativeFunc_3lwi4"]
-
-[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_6vdrj"]
-parameter_name = "blue_tint"
-default_value_enabled = true
-default_value = Color(0, 0, 1, 1)
-
-[sub_resource type="VisualShaderNodeVec2Parameter" id="VisualShaderNodeVec2Parameter_sd7ej"]
-parameter_name = "sprite_scale"
-default_value_enabled = true
-default_value = Vector2(1, 1)
-
-[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_5pktw"]
-parameter_name = "scale_x"
-default_value_enabled = true
-default_value = 0.65
-
-[sub_resource type="VisualShaderNodeFloatFunc" id="VisualShaderNodeFloatFunc_yva18"]
-function = 17
-
-[sub_resource type="VisualShaderNodeFloatFunc" id="VisualShaderNodeFloatFunc_0smyq"]
-function = 0
-
-[sub_resource type="VisualShader" id="VisualShader_jaaao"]
-code = "shader_type canvas_item;
-
-
-"
-graph_offset = Vector2(27.3156, 26.6479)
-mode = 1
-flags/light_only = false
-nodes/fragment/0/position = Vector2(1020, 140)
-nodes/fragment/5/node = SubResource("VisualShaderNodeColorParameter_6vdrj")
-nodes/fragment/5/position = Vector2(-160, 180)
-nodes/fragment/6/node = SubResource("VisualShaderNodeVec2Parameter_sd7ej")
-nodes/fragment/6/position = Vector2(-140, 620)
-nodes/fragment/7/node = SubResource("VisualShaderNodeFloatParameter_5pktw")
-nodes/fragment/7/position = Vector2(-140, 1080)
-nodes/fragment/8/node = SubResource("VisualShaderNodeFloatFunc_yva18")
-nodes/fragment/8/position = Vector2(2280, 1660)
-nodes/fragment/9/node = SubResource("VisualShaderNodeFloatFunc_0smyq")
-nodes/fragment/9/position = Vector2(1420, 1660)
-nodes/fragment/10/node = SubResource("VisualShaderNodeDotProduct_bdfsn")
-nodes/fragment/10/position = Vector2(1140, 1620)
-nodes/fragment/11/node = SubResource("VisualShaderNodeVec2Parameter_qiqmf")
-nodes/fragment/11/position = Vector2(560, 1420)
-nodes/fragment/12/node = SubResource("VisualShaderNodeFloatConstant_t0mgc")
-nodes/fragment/12/position = Vector2(1400, 1900)
-nodes/fragment/14/node = SubResource("VisualShaderNodeVec2Constant_5o033")
-nodes/fragment/14/position = Vector2(860, 1840)
-nodes/fragment/15/node = SubResource("VisualShaderNodeFloatOp_oncj3")
-nodes/fragment/15/position = Vector2(1840, 1680)
-nodes/fragment/16/node = SubResource("VisualShaderNodeDerivativeFunc_3lwi4")
-nodes/fragment/16/position = Vector2(1600, 940)
-nodes/fragment/connections = PackedInt32Array(11, 0, 10, 0, 14, 0, 10, 1, 10, 0, 9, 0, 9, 0, 15, 0, 12, 0, 15, 1, 15, 0, 8, 0)
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_rmxlj"]
-shader = SubResource("VisualShader_jaaao")
-
 [sub_resource type="Animation" id="2"]
 length = 20.0
 tracks/0/type = "value"
@@ -133,10 +59,10 @@ tracks/0/path = NodePath("Polygon2Dwater:position")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PackedFloat32Array(0, 5.1, 10),
-"transitions": PackedFloat32Array(1, 1, 1),
+"times": PackedFloat32Array(0, 2),
+"transitions": PackedFloat32Array(1, 1),
 "update": 0,
-"values": [Vector2(-0.000244141, 1207.64), Vector2(-0.000244141, 1207.64), Vector2(-0.000244141, 799.641)]
+"values": [Vector2(-0.000244141, 1207.64), Vector2(-0.000244141, 799.641)]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_foebe"]
@@ -170,16 +96,16 @@ script = SubResource("1")
 
 [node name="Polygon2Dwater" type="Node2D" parent="."]
 z_index = 2
-material = SubResource("ShaderMaterial_rmxlj")
-position = Vector2(-0.000244141, 1207.64)
+position = Vector2(-0.000244141, 799.641)
 script = ExtResource("3")
-WATER_COLOR = Color(0.152941, 0, 0.603922, 0.752941)
-TOP_WATER_COLOR = Color(1, 1, 1, 0.894118)
+WATER_COLOR = Color(0.411765, 0.643137, 1, 1)
+SURFACE_WIDTH = 0.1
+SURFACE_COLOR = Color(0.737255, 0.843137, 1, 1)
+particles_alpha = 1.0
+WIDTH = 1260.0
 HEIGHT = 720.0
-WIDTH = 1080.0
 RESOLUTION = 50.0
-PASSES = 10
-water_distortion = null
+PASSES = 20
 
 [node name="piso_seco" type="StaticBody2D" parent="."]
 z_index = 2
@@ -246,5 +172,9 @@ gravity_scale = 5.0
 position = Vector2(697.524, 448.139)
 mass = 10.0
 gravity_scale = 5.0
+
+[node name="Polygon2D" type="Polygon2D" parent="."]
+color = Color(0.109804, 0.109804, 0.109804, 1)
+polygon = PackedVector2Array(-167, 328, 295, 514, 427, 488, 498, 550, 624, 539, 722, 441, 811, 497, 909, 311, 980, 273, 1197, 275, 1165, 962, -225, 906)
 
 [connection signal="timeout" from="Timer" to="." method="_on_Timer_timeout"]
