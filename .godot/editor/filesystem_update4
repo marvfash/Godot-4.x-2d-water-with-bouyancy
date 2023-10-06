@@ -1,0 +1,6 @@
+res://main.tscn
+res://addons/polygon2dwater/water.gdshader
+res://addons/polygon2dwater/polygon2dwater.gd
+res://boat.tscn
+res://main.tres
+res://addons/polygon2dwater/plugin.cfg

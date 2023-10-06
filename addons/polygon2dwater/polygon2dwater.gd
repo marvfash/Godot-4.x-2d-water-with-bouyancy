@@ -1,23 +1,24 @@
-tool
+@tool
 extends Node2D
 
-export (Color) var COR = Color(1.0, 1.0, 1.0, 1.0)
-export (float, 0, 1) var particles_alpha = .5
-export (AudioStream) var audio_splash = preload("res://addons/polygon2dwater/splash.ogg")
-export (float) var ALTURA = 0
-export (float) var LARGURA = 0
-export (float) var RESOLUCAO = 15
-export (float) var TENSAO = 0.025
-export (float) var AMORTECIMENTO = 0.001
-export (int) var PASSES = 1
-export (float) var DISPERSAO = 0.01
-export (bool) var simulate_water = true 
-export (float) var water_distorcion:int = 3
-export (bool) var emit_particles: bool = true
-export (Texture) var water_texture = preload("res://addons/polygon2dwater/water_texture.png")
+@export var simulate_water: bool = true 
+@export var WATER_COLOR = Color(1.0, 1.0, 1.0, 1.0)
+@export var TOP_WATER_COLOR = Color(1.0, 1.0, 1.0, 1.0)
+@export_range(0, 1) var particles_alpha: float = 0.5
+@export var audio_splash: AudioStream = preload("res://addons/polygon2dwater/splash.ogg")
+@export var HEIGHT: float = 0
+@export var WIDTH: float = 0
+@export var RESOLUTION: float = 15
+@export var TENSION: float = 0.025
+@export var DAMPING: float = 0.001
+@export var PASSES: int = 1
+@export var DISPERSION: float = 0.01
+@export var water_distortion:int = 3
+@export var emit_particles: bool = true
+@export var water_texture: Texture = preload("res://addons/polygon2dwater/water_texture.png")
 
 var water_particles = preload("res://addons/polygon2dwater/particles.tscn")
-var water_shader = preload("res://addons/polygon2dwater/water.shader")
+var water_shader = preload("res://addons/polygon2dwater/water.gdshader")
 var droplet_texture = preload("res://addons/polygon2dwater/droplets.png")
 var timer_queuefree_droplets = Timer.new()
 
@@ -30,7 +31,7 @@ var right_vec = []
 
 var randomizator = RandomNumberGenerator.new()
 var water
-var area
+var water_area_2d
 var _col
 
 func _ready():
@@ -42,7 +43,7 @@ func _ready():
 	
 	timer_queuefree_droplets.wait_time = 1
 	timer_queuefree_droplets.autostart = true
-	timer_queuefree_droplets.connect("timeout", self, "_on_timer_droplets_timeout")
+	timer_queuefree_droplets.connect("timeout", _on_timer_droplets_timeout)
 	add_child(timer_queuefree_droplets)
 
 func _on_timer_box_timeout():
@@ -51,7 +52,7 @@ func _on_timer_box_timeout():
 		
 func _on_timer_droplets_timeout():
 	for d in get_tree().get_nodes_in_group("water_droplets"):
-		yield(get_tree().create_timer(.5), "timeout")
+		await get_tree().create_timer(0.5).timeout
 		if weakref(d).get_ref():
 			d.queue_free()
 		break
@@ -61,19 +62,19 @@ func _physics_process(delta):
 	if Engine.is_editor_hint() == false:
 		_dynamic_physics()
 	else:
-		update()
+		queue_redraw()
 	
 func _dynamic_physics():
 	if !weakref(water).get_ref(): return
 	
 	for i in vecs_positions.size() - 2:
-		var target_y = -ALTURA - vecs_positions[i].y
-		vecs_velocity[i] += (TENSAO * target_y) - (AMORTECIMENTO * vecs_velocity[i])
+		var target_y = -HEIGHT - vecs_positions[i].y
+		vecs_velocity[i] += (TENSION * target_y) - (DAMPING * vecs_velocity[i])
 		vecs_positions[i].y += vecs_velocity[i]
 		
 		water.polygon[i] = vecs_positions[i]
 	
-	#dispersão
+	#Dispersion
 	for i in vecs_positions.size() - 2:
 		left_vec[i] = 0
 		right_vec[i] = 0
@@ -81,10 +82,10 @@ func _dynamic_physics():
 	for j in PASSES:
 		for i in vecs_positions.size() - 2:
 			if i > 0:
-				left_vec[i] = DISPERSAO * (vecs_positions[i].y - vecs_positions[i - 1].y)
+				left_vec[i] = DISPERSION * (vecs_positions[i].y - vecs_positions[i - 1].y)
 				vecs_velocity[i - 1] += left_vec[i]
 			if i < vecs_positions.size() - 3:
-				right_vec[i] = DISPERSAO * (vecs_positions[i].y - vecs_positions[i + 1].y)
+				right_vec[i] = DISPERSION * (vecs_positions[i].y - vecs_positions[i + 1].y)
 				vecs_velocity[i + 1] += right_vec[i]
 		for i in vecs_positions.size() - 2:
 			if i > 0:
@@ -94,52 +95,52 @@ func _dynamic_physics():
 		
 func create_water_block():
 	var water_block = Polygon2D.new()
-	var area = Area2D.new()
-	var col = CollisionPolygon2D.new()
+	var water_area_2d = Area2D.new()
+	var water_collision_polygon_2d = CollisionPolygon2D.new()
 	
-	var distance_beetween_vecs = LARGURA / RESOLUCAO
-	var vecs = PoolVector2Array([])
+	var distance_beetween_vecs = WIDTH / RESOLUTION
+
+	var vecs: PackedVector2Array = PackedVector2Array([])
 	
-	vecs.insert(0, Vector2(0, -ALTURA))
-	for i in RESOLUCAO:
-		vecs.insert(i+1, Vector2(distance_beetween_vecs * (i + 1),-ALTURA))
+	vecs.insert(0, Vector2(0, -HEIGHT))
+	for i in RESOLUTION:
+		vecs.insert(i+1, Vector2(distance_beetween_vecs * (i + 1),-HEIGHT))
 	
-	vecs.insert(RESOLUCAO + 1, Vector2(LARGURA, 0))
-	vecs.insert(RESOLUCAO + 2, Vector2(0, 0))
+	vecs.insert(RESOLUTION + 1, Vector2(WIDTH, 0))
+	vecs.insert(RESOLUTION + 2, Vector2(0, 0))
 	
 	water_block.name = "water_base"
 	water_block.polygon = []
 	water_block.polygon = vecs
-	water_block.color = COR
+	water_block.color = WATER_COLOR
 	
-	col.polygon = []
-	col.polygon = water_block.polygon
-	
+	water_collision_polygon_2d.polygon = []
+	water_collision_polygon_2d.polygon = water_block.polygon
 
 	if simulate_water:
 		var new_material = ShaderMaterial.new()
 		new_material.shader = water_shader
-		new_material.set_shader_param("blue_tint", COR)
-		new_material.set_shader_param("sprite_scale", Vector2(1,1))
-		new_material.set_shader_param("scale_x", water_distorcion)
+		new_material.set_shader_parameter("blue_tint", WATER_COLOR)
+		new_material.set_shader_parameter("sprite_scale", Vector2(1,1))
+		new_material.set_shader_parameter("scale_x", water_distortion)
+		new_material.set_shader_parameter("parent_position", position)
 		water_block.material = new_material
 
 		if water_texture != null:
 			water_block.texture = water_texture
-	
 
 		water_block.antialiased = true
-		area.name = "water_area"
-		area.add_to_group("water_area")
+		water_area_2d.name = "water_area"
+		water_area_2d.add_to_group("water_area")
 		
-		col.name = "water_col"
+		water_collision_polygon_2d.name = "water_col"
 		
 		self.add_child(water_block)
-		water_block.add_child(area)
-		area.add_child(col)
+		water_block.add_child(water_area_2d)
+		water_area_2d.add_child(water_collision_polygon_2d)
 	
-		area.connect("body_entered", self, "body_emerged")
-		area.connect("body_exited", self, "body_not_emerged")
+		water_area_2d.connect("body_entered", body_emerged)
+		water_area_2d.connect("body_exited", body_not_emerged)
 	
 	for i in water_block.polygon.size():
 		vecs_positions.insert(i, water_block.polygon[i])
@@ -151,15 +152,17 @@ func create_water_block():
 	_col = $"./water_base/water_area/water_col"
 
 func body_emerged(body):
-	if (body is RigidBody2D) or (body is KinematicBody2D) or (body is StaticBody2D):
+	if (body is RigidBody2D) or (body is CharacterBody2D) or (body is StaticBody2D):
 		
 		var force_applied = 11 * 0.5
+
 		if body is RigidBody2D:
 			force_applied = body.linear_velocity.y * 0.01
 		
 		var body_pos = body.position.x - self.position.x
 		var closest_vec_pos_x = 9999999
 		var closest_vec = 0
+
 		for i in vecs_positions.size() - 2:
 			var distance_diference = vecs_positions[i].x - body_pos 
 			if distance_diference < 0:
@@ -170,19 +173,18 @@ func body_emerged(body):
 		vecs_velocity[closest_vec] -= force_applied
 		
 		if body.has_method("_on_water_entered"):
-			body._on_water_entered(water, ALTURA, TENSAO, AMORTECIMENTO)
+			body._on_water_entered(water, HEIGHT, TENSION, DAMPING)
 		
 		if emit_particles:
-			
 			if audio_splash:
 				var audioSplash = AudioStreamPlayer.new()
 				audioSplash.stream = audio_splash
 				audioSplash.volume_db = randomizator.randf_range(-50,-10)
-				audioSplash.connect("finished", self, "_on_audoSplashFinished", [audioSplash])
+				audioSplash.connect("finished", _on_audoSplashFinished.bind(audioSplash))
 				add_child(audioSplash)
 				audioSplash.play()
 				
-			var droplets = water_particles.instance()
+			var droplets = water_particles.instantiate()
 			droplets.name = "particles"
 			droplets.amount = (randomizator.randi() % 30) + 5
 			droplets.lifetime = 3
@@ -190,12 +192,12 @@ func body_emerged(body):
 			droplets.explosiveness = 1
 			droplets.one_shot = true
 			droplets.texture = droplet_texture
-			droplets.color = COR
+			droplets.color = WATER_COLOR
 			droplets.add_to_group("water_droplets")
 			
 			var gradientRamp = Gradient.new()
-			var corStart = COR
-			var corEnd = COR
+			var corStart = WATER_COLOR
+			var corEnd = WATER_COLOR
 			corStart.a = particles_alpha
 			corEnd.a = 0
 			
@@ -205,21 +207,21 @@ func body_emerged(body):
 			droplets.color_ramp = gradientRamp
 			droplets.z_index = body.z_index - 1
 			droplets.global_position = Vector2(body.global_position.x, body.global_position.y)
-			droplets.set_as_toplevel(true)
+			droplets.set_as_top_level(true)
 			add_child(droplets)
 			droplets.emitting = true
 
 func body_not_emerged(body):
-	if body is RigidBody2D or body is KinematicBody2D or body is StaticBody2D:
+	if body is RigidBody2D or body is CharacterBody2D or body is StaticBody2D:
 		if body.has_method("_on_water_exited"):
 			body._on_water_exited()
 
 func _draw():
-	var vecs = PoolVector2Array([])
-	var color = PoolColorArray([])
+	var vecs = PackedVector2Array([])
+	var color = PackedColorArray([])
 	if Engine.is_editor_hint():
-		vecs = PoolVector2Array([Vector2(0, -ALTURA), Vector2(LARGURA, -ALTURA), Vector2(LARGURA, 0), Vector2(0, 0)])
-		color = PoolColorArray([COR, COR, COR, COR])
+		vecs = PackedVector2Array([Vector2(0, -HEIGHT), Vector2(WIDTH, -HEIGHT), Vector2(WIDTH, 0), Vector2(0, 0)])
+		color = PackedColorArray([WATER_COLOR, WATER_COLOR, WATER_COLOR, WATER_COLOR])
 	draw_polygon(vecs, color)
 
 func _on_audoSplashFinished(body):
